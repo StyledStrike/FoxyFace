@@ -8,6 +8,7 @@ from src.config.ConfigManager import ConfigManager
 from src.config.ConfigUpdateListener import ConfigUpdateListener
 from src.config.schemas.Config import Config
 from src.pipline.CameraPipeline import CameraPipeline
+from src.pipline.MediaPipeCropPipeline import MediaPipeCropPipeline
 from src.stream.camera.CameraFrame import CameraFrame
 from src.stream.camera.CameraProcessing import CameraProcessing
 from src.stream.core.StreamWriteOnly import StreamWriteOnly
@@ -23,12 +24,14 @@ _logger = logging.getLogger(__name__)
 
 
 class MediaPipePipeline:
-    def __init__(self, config_manager: ConfigManager, camera_pipeline: CameraPipeline):
+    def __init__(self, config_manager: ConfigManager, camera_pipeline: CameraPipeline, crop_pipeline: MediaPipeCropPipeline):
         self.__config_manager = config_manager
         self.__camera_pipeline = camera_pipeline
+        self.__crop_pipeline = crop_pipeline
 
         self.__buffer = SingleBufferStream[CameraFrame]()
-        self.__camera_pipeline.register_stream(self.__buffer)
+        #self.__camera_pipeline.register_stream(self.__buffer)
+        self.__crop_pipeline.register_stream(self.__buffer)
         processed_stream = CameraProcessing(self.__buffer, self.__camera_pipeline.get_processing_options())
 
         self.__stream: MediaPipeStream = MediaPipeStream(processed_stream, MediaPipePipeline.__read_media_pipe_model(),
@@ -75,7 +78,8 @@ class MediaPipePipeline:
         if self.__preview_window is not None:
             self.__preview_window.close()
 
-        self.__camera_pipeline.unregister_stream(self.__buffer)
+        #self.__camera_pipeline.unregister_stream(self.__buffer)
+        self.__crop_pipeline.unregister_stream(self.__buffer)
 
         self.__stream.unregister_stream(self.__fps_counter)
         self.__stream.unregister_stream(self.__latency_counter)

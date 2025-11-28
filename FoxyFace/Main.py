@@ -33,6 +33,7 @@ from src.ui.windows.MainWindow import MainWindow
 from src.pipline.calibration.AutoCalibrationEndpoint import AutoCalibrationEndpoint
 from src.pipline.BabblePipeline import BabblePipeline
 from src.pipline.CameraPipeline import CameraPipeline
+from src.pipline.MediaPipeCropPipeline import MediaPipeCropPipeline
 from src.pipline.MediaPipePipeline import MediaPipePipeline
 from src.pipline.UdpPipeline import UdpPipeline
 from src.pipline.ProcessingPipeline import ProcessingPipeline
@@ -49,7 +50,8 @@ class RunMainStream:
         self.__config_manager.load(wait=True)
 
         self.__camera_pipeline: CameraPipeline = CameraPipeline(self.__config_manager)
-        self.__media_pipe_pipeline: MediaPipePipeline = MediaPipePipeline(self.__config_manager, self.__camera_pipeline)
+        self.__media_pipe_crop_pipeline: MediaPipeCropPipeline = MediaPipeCropPipeline(self.__camera_pipeline)
+        self.__media_pipe_pipeline: MediaPipePipeline = MediaPipePipeline(self.__config_manager, self.__camera_pipeline, self.__media_pipe_crop_pipeline)
         self.__babble_pipeline: BabblePipeline = BabblePipeline(self.__config_manager, self.__media_pipe_pipeline)
         self.__processing_pipeline: ProcessingPipeline = ProcessingPipeline(self.__config_manager,
                                                                             self.__media_pipe_pipeline,
@@ -81,6 +83,7 @@ class RunMainStream:
 
         self.__babble_pipeline.close()
         self.__media_pipe_pipeline.close()
+        self.__media_pipe_crop_pipeline.close()
         self.__camera_pipeline.close()
         self.__processing_pipeline.close()
         self.__udp_pipeline.close()
